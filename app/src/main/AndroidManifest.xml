@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.gurjeet.lab_a1_a2_android_gurjeetkaur_c0817568">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Lab_A1_A2_android_GurjeetKaur_C0817568">
+        <activity android:name=".activities.MainActivity"></activity>
+        <activity android:name=".activities.MapsActivity" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCXyg0czxSLlreZUPYV2s3GdGPjJku1C40" />
+
+        <activity android:name=".activities.ProductDetailActivity" />
+        <activity android:name=".activities.ProductListActivity" />
+        <activity android:name=".activities.SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".activities.ProviderListActivity" />
+    </application>
+
+</manifest>
