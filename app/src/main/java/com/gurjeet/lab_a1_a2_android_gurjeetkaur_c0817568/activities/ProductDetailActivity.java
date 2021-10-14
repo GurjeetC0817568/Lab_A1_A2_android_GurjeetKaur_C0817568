@@ -85,12 +85,13 @@ public class ProductDetailActivity extends AppCompatActivity {
     ArrayList<Product> productList = new ArrayList<>();
 
     //variables set
-    TextView locationDetailsTV;
+    ImageButton btnPlay, btnRecord;
+    TextView locationDetailsTV,saveTV;
     ImageView btnBack,  mapIcon;
     EditText titleET, detailET,priceET,provET,provLatET,provLngET;
 
 
-
+    private double provLat,provLng;
     private int provID = 0;
     private int productId = 0;
     String pathSave = "", recordFile = null;
@@ -121,7 +122,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         detailET = findViewById(R.id.detailET);
         priceET= findViewById(R.id.priceET);
         btnBack = findViewById(R.id.backBtn);
-
+        saveTV = findViewById(R.id.saveTV);
 
         locationDetailsTV = findViewById(R.id.locationDetailsTV);
         mapIcon = findViewById(R.id.mapIcon);
@@ -133,16 +134,17 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
 
 
-
         provID = getIntent().getIntExtra(ProductListActivity.PROVIDER_ID, 0);
-       // provLatET = getIntent().getStringExtra("prov_lat");
-
-
+        provLat = getIntent().getDoubleExtra(ProductListActivity.PROVIDER_LAT,43.6532);
+        provLng = getIntent().getDoubleExtra(ProductListActivity.PROVIDER_LNG , -79.383);
         productId = getIntent().getIntExtra("product_id", -1) ;
 
-       //display product,detail from previous page using intent
+        // set location initializer
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        //display product,detail from previous page using intent
         if(productId  > 0){
-            latLangProduct = new LatLng(getIntent().getDoubleExtra("prov_lat",43.6532), getIntent().getDoubleExtra("prov_lng" , 79.383));
+            latLangProduct = new LatLng(provLat, provLng);
             titleET.setText(getIntent().getStringExtra("product_name"));
             detailET.setText(getIntent().getStringExtra("product_detail"));
             priceET.setText(getIntent().getStringExtra("product_price"));
@@ -150,8 +152,51 @@ public class ProductDetailActivity extends AppCompatActivity {
         }
 
 
+        /**************Save button click for both add and update**************/
+        saveTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String title = titleET.getText().toString().trim();
+                String detail = detailET.getText().toString().trim();
+                 String price = detailET.getText().toString().trim();
+                //setting date format
+                Date date = Calendar.getInstance().getTime();
+                DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy hh:mm aa");
+                String strDate = dateFormat.format(date);
+
+
+                if (title.isEmpty() || detail.isEmpty()) {
+                    alertBox("Enter both product title and description!");
+                }else {
+
+                    if(productId > 0){
+                        //update product
+                        productAppViewModel.getProductById(productId).observe(ProductDetailActivity.this, product -> {
+                            product.setProductProviderId(product.getProductProviderId());
+                            product.setProductName(title);
+                            product.setProductDetail(detail);
+                            product.setProductPrice(price);
+                             productAppViewModel.update(product);
+                        });
+
+                    }else{
+                        //add product
+                        //date settings
+                        Date c = Calendar.getInstance().getTime();
+                        SimpleDateFormat df = new SimpleDateFormat("dd-mm-yyyy", Locale.getDefault());
+                        String formattedDate = df.format(c);
+                        //insert into table
+                        productAppViewModel.insertProduct(new Product(provID, title, detail, price,formattedDate));
+                    }
+                    finish();
+                }
+            }
+        });
+        /**************Ends save button click for both add and update**************/
 
         productAppViewModel = new ViewModelProvider.AndroidViewModelFactory(this.getApplication()).create(ProductViewModel.class);
+
 
         // Reference:https://stackoverflow.com/questions/62613424/java-solution-for-startactivityforresultintent-int-in-fragment-has-been-depre
         myActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -160,15 +205,12 @@ public class ProductDetailActivity extends AppCompatActivity {
                     public void onActivityResult(ActivityResult result) {
                         if (result.getResultCode() == RESULT_OK) {
                             Intent data = result.getData();
-
-
+                            //will use it later
                         }
                     }
                 });
 
 
-        // set location initializer
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         // added permissions
         permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -182,13 +224,13 @@ public class ProductDetailActivity extends AppCompatActivity {
             startUpdateLocation();
 
 
-        /**************location icon click to show map activity***********/
+        /**************location text click to show map activity***********/
         locationDetailsTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ProductDetailActivity.this, MapsActivity.class);
-                intent.putExtra("product_longitude", latLangProduct.longitude);
-                intent.putExtra("product_latitude",  latLangProduct.latitude);
+                intent.putExtra("product_latitude", provLat);
+                intent.putExtra("product_longitude", provLng);
                 startActivity(intent);
             }
         });
@@ -198,8 +240,8 @@ public class ProductDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ProductDetailActivity.this, MapsActivity.class);
-                intent.putExtra("product_longitude", latLangProduct.longitude);
-                intent.putExtra("product_latitude",  latLangProduct.latitude);
+                intent.putExtra("product_latitude", provLat);
+                intent.putExtra("product_longitude", provLng);
                 startActivity(intent);
             }
         });

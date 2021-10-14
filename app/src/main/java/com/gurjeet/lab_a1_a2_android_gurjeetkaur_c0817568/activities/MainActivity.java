@@ -36,7 +36,7 @@ import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageView createProduct, goBack;
+    ImageView  goBack;
     RecyclerView rcvProducts;
     TextView sortAZ, sortZA, sortDate;
     SearchView searchView;
@@ -65,13 +65,14 @@ public class MainActivity extends AppCompatActivity {
         sortAZ = findViewById(R.id.sortAZ);
         sortZA = findViewById(R.id.sortZA);
         sortDate = findViewById(R.id.sortDate);
+
         searchView = findViewById(R.id.searchView);
         rcvProducts = findViewById(R.id.rcvProducts);
         showProviders = findViewById(R.id.showProviders);
 
         //to not change the size of recycler view when change in adapter content
         rcvProducts.setHasFixedSize(true);
-
+        // prodId = 0;//getIntent().getIntExtra(MainActivity.PROVIDER_ID, 0);
 
 
 
@@ -84,7 +85,10 @@ public class MainActivity extends AppCompatActivity {
         productAppViewModel = new ViewModelProvider.AndroidViewModelFactory(this.getApplication())
                 .create(ProductViewModel.class);
 
-
+      /*  // back button click to go back
+        goBack.setOnClickListener(v -> {
+            finish();
+        });*/
 
         /**************show providers activity when click on providers**************/
         showProviders.setOnClickListener(new View.OnClickListener() {
@@ -130,10 +134,98 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-
+           ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+           itemTouchHelper.attachToRecyclerView(rcvProducts);
     }
     /************Ends onResume during search***************************/
 
+    /************Starts Left Right Swipe Part***************************/
+    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
+            int position = viewHolder.getAdapterPosition();
+
+            switch (direction) {
+                //Delete task when left swipe
+                case ItemTouchHelper.LEFT:
+                    AlertDialog.Builder builderl = new AlertDialog.Builder(MainActivity.this);
+                    builderl.setTitle("You sure to delete this product?");
+
+                    //when click yes then delete
+                    builderl.setPositiveButton("Yes", (dialog, which) -> {
+                        productAppViewModel.delete(productList.get(position));
+                    });
+                    //when click No then do nothing
+                    builderl.setNegativeButton("No", (dialog, which) -> productAdapter.notifyDataSetChanged());
+                    AlertDialog alertDialog = builderl.create();
+                    alertDialog.show();
+                    break;
+                //move provider part when right swipe
+                case ItemTouchHelper.RIGHT:
+                    productAppViewModel.getAllProviders().observe(MainActivity.this, providers -> {
+                        if (providers.size() == 1){
+                            //move function will not work if there is only one provider
+                            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("Warning! can not possible!");
+                            builder.setMessage("There is one provider only");
+                            builder.setCancelable(false);
+                            builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            builder.create().show();
+
+                        }else{
+                            //if more than 1 providers then update the product's providerId in product table
+                            selectedProvider = providers;
+                            for (Provider provider :providers){
+                                catSpinnerArr.add(provider.getProviderName());
+                            }
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
+                            View view = layoutInflater.inflate(R.layout.dialog_move_product_provider, null);
+                            builder.setView(view);
+                            final AlertDialog alertDialogr = builder.create();
+                            alertDialogr.show();
+
+                            //Reference:https://stackoverflow.com/questions/6485158/custom-style-setdropdownviewresource-android-spinner/22178862
+                            //Reference: https://stackoverflow.com/questions/40261501/how-to-set-same-appearance-for-spinner-in-xml-design
+                            Spinner otherProvidersSp = view.findViewById(R.id.otherProvidersSp);
+                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, catSpinnerArr);
+                            adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
+                            otherProvidersSp.setAdapter(adapter);
+
+                            //when popup dialog box's button click after selecting new provider
+                            Button btnChangeProvider = view.findViewById(R.id.btnChangeProvider);
+                            btnChangeProvider.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    final Product productToUpdate = productList.get(position);
+                                    final Provider providerToUpdate = selectedProvider.get(otherProvidersSp.getSelectedItemPosition());
+                                    //set product's provider id to new providerId in product table
+                                    productToUpdate.setProductProviderId(providerToUpdate.getProviderId());
+                                    productAppViewModel.update(productToUpdate);
+                                    alertDialogr.dismiss();
+                                }
+                            });
+                        }
+                    });
+            }
+        }
+
+
+
+    };
+    /************Ends Left Right Swipe Part***************************/
 
 
     /************Starts ProductAdapter part***************************/
@@ -182,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
                 productCreateDate = itemView.findViewById(R.id.productCreateDate);
             }
 
-            // Bind to show in productDetailActivity class
+            // Binding to show in productDetailActivity
             public void bind(Product product) {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override

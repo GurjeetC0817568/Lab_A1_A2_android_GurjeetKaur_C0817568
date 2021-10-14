@@ -45,10 +45,8 @@ public class ProductViewModel  extends AndroidViewModel {
         return allProducts;
     }
 
+    public void insertProvider(Provider provider) {repository.insertProvider(provider);}
 
-    public void insertProvider(Provider provider) {
-        repository.insertProvider(provider);
-    }
 
     public void insertProduct(Product product) {
         repository.insertProduct(product);
@@ -61,7 +59,7 @@ public class ProductViewModel  extends AndroidViewModel {
         return repository.getProviderById(id);
     }
 
-   /*
+
     //TODO: not needed now, will check issue later
     public void delete(Product product) {
         repository.delete(product);
@@ -77,6 +75,6 @@ public class ProductViewModel  extends AndroidViewModel {
     public void updateProvider(Provider provider) {
         repository.updateProvider(provider);
     }
-  */
+
 
 }

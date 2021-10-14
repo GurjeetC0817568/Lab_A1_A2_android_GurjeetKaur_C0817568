@@ -23,19 +23,11 @@ public class ProductRepository {
     }
 
     public LiveData<List<Provider>> getAllProviders() {
-       /* if(allProviders==0){
-        loadDemoData();
-        }
-        */
+
         return allProviders;
     }
 
-   /* public void loadDemoData(){
-        // Product employee = new Product("Mo", "cs", "", 1111);
-        // ProductDao.insertProduct(employee);
-        // Product employee = new Product("Mo", "cs", "", 1111);
-        // ProductDao.insertProduct(employee);
-    }*/
+
 
     public LiveData<List<Product>> getAllProducts() {
         return allProducts;
@@ -73,7 +65,7 @@ public class ProductRepository {
         return productDao.getProviderById(id);
     }
 
-    /* //implement it later in related files like productViewModel
+     //implement it later in related files like productViewModel
     // updates a product
     public void update(Product product) {
         ProductRoomDB.databaseWriteExecutor.execute(() -> productDao.update(product));
@@ -91,5 +83,5 @@ public class ProductRepository {
         ProductRoomDB.databaseWriteExecutor.execute(() -> productDao.deleteProvider(providerId));
     }
 
-     */
+
 }

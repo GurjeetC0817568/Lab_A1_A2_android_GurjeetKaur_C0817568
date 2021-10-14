@@ -2,9 +2,11 @@ package com.gurjeet.lab_a1_a2_android_gurjeetkaur_c0817568.data;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.gurjeet.lab_a1_a2_android_gurjeetkaur_c0817568.model.Product;
 import com.gurjeet.lab_a1_a2_android_gurjeetkaur_c0817568.model.Provider;
@@ -61,7 +63,21 @@ public interface ProductDao {
     @Query("SELECT * FROM provider WHERE provider_id = :id LIMIT 1")
     public LiveData<Provider> getProviderById(int id);
 
-    //TODO: Update & Delete queries for 2nd assignment
+    // update and delete queries
     @Query("DELETE FROM product")
     void deleteAll();
+    @Update(onConflict = OnConflictStrategy.IGNORE)
+    void update(Product product);
+
+    @Update(onConflict = OnConflictStrategy.IGNORE)
+    void updateProvider(Provider provider);
+
+    @Query("SELECT * FROM provider WHERE provider_id <> :providerId")
+    LiveData<List<Provider>> getAllOtherProvidersExcept(int providerId);
+
+    @Delete
+    void deleteProduct(Product product);
+
+    @Query("DELETE FROM provider WHERE provider_id = :providerId")
+    void deleteProvider(int providerId);
 }
